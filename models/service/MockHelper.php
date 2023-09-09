@@ -26,7 +26,9 @@ class MockHelper
         $start_date = strtotime('2023-01-01');
         $random_timestamp = rand($start_date, $end_date);
 
-        return date('Y-m-d', $random_timestamp);
+        if (date('g', $random_timestamp) < 18) {
+            return date('Y-m-d H:s', $random_timestamp);
+        }
     }
 
     public static function createFakeOrders()
