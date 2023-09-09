@@ -1,9 +1,10 @@
 <?php
+
 namespace app\models\service;
+
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\HandlerStack;
-
 
 class MockHelper
 {
