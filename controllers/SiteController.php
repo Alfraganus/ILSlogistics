@@ -63,51 +63,7 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $handlerStack = Emulator::createHandlerStack();
-        $client = new Client(['handler' => $handlerStack]);
-        $baseUrl = 'https://example.com';  // Базовый URL для API доставки
-
-        $deliveries = [
-            [
-                'sourceKladr' => 'kladr1',
-                'targetKladr' => 'kladr2',
-                'weight' => 1.5
-            ],
-            [
-                'sourceKladr' => 'kladr3',
-                'targetKladr' => 'kladr4',
-                'weight' => 3.0
-            ],
-            [
-                'sourceKladr' => 'kladr3',
-                'targetKladr' => 'kladr4',
-                'weight' => 3.0
-            ],
-            [
-                'sourceKladr' => 'kladr1',
-                'targetKladr' => 'kladr2',
-                'weight' => 1.5
-            ],
-            [
-                'sourceKladr' => 'kladr3',
-                'targetKladr' => 'kladr4',
-                'weight' => 3.0
-            ],
-            [
-                'sourceKladr' => 'kladr3',
-                'targetKladr' => 'kladr4',
-                'weight' => 3.0
-            ],
-        ];
-
-        $calculator = new DeliveryHelperService($baseUrl, $client);
-        $results = $calculator->calculateDeliveryCost($deliveries);
-
-// Возвращаем результат
-        echo  "<pre>";
-        foreach ($results as $result) {
-            print_r($result);
-        }
+        return $this->redirect(['delivery/run']);
     }
 
     /**

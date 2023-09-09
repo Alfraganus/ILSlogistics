@@ -2,93 +2,70 @@
 
 namespace app\models\service;
 
-use GuzzleHttp\Client;
-
 class DeliveryHelperService
 {
     private $baseUrl;
     private $client;
 
+    const FAST_DELIVERY = 'fast';
+    const SLOW_DELIVERY = 'slow';
     public function __construct($baseUrl, $client)
     {
         $this->baseUrl = $baseUrl;
         $this->client = $client;
     }
 
-    public function calculateDeliveryCost($deliveries)
+    private array $allowedFields = [
+        'sourceKladr',
+        'targetKladr',
+        'weight'
+    ];
+
+    public function executeDelivery($deliveries,$deliveryType)
     {
         $results = [];
         foreach ($deliveries as $delivery) {
-            if (!$this->validateDeliveryData($delivery)) {
-                continue;
+            if (!$this->isDeliveryDataValid($delivery)) {
+                throw new \Exception("Wrong parameter has been given!",400);
             }
-            $results[] = $this->getFastDelivery($delivery);
-            $results[] = $this->getSlowDelivery($delivery);
+            $deliveryType == self::FAST_DELIVERY ?
+                $results[] = $this->getFastDelivery($delivery) :
+                $results[] = $this->getSlowDelivery($delivery);
         }
 
         return $results;
     }
 
-    public function validateDeliveryData($data)
+    public function isDeliveryDataValid($data)
     {
-        $requiredKeys = ['sourceKladr', 'targetKladr', 'weight'];
-        foreach ($requiredKeys as $key) {
-            if (empty($data[$key])) {
-                return false;
-            }
+        foreach ($this->allowedFields as $field) {
+            if (empty($data[$field]))  return false;
         }
-
         return true;
     }
 
     public function getFastDelivery($data)
     {
-        $url = $this->baseUrl . '/fast_delivery';
-        try {
-            $response = $this->client->request('GET', $url, ['query' => $data]);
-            $body = $response->getBody()->getContents();
-            return json_decode($body, true);
-        } catch (\Exception $e) {
-            return ['error' => $e->getMessage()];
-        }
+        return $this->sendDeliveryRequest('fast_delivery', $data);
     }
 
     public function getSlowDelivery($data)
     {
-        $url = $this->baseUrl . '/slow_delivery';
+        return $this->sendDeliveryRequest('slow_delivery', $data);
+    }
+
+    private function sendDeliveryRequest($endpoint, $data)
+    {
+        $url = $this->baseUrl . '/' . $endpoint;
+
         try {
             $response = $this->client->request('GET', $url, ['query' => $data]);
             $body = $response->getBody()->getContents();
             return json_decode($body, true);
         } catch (\Exception $e) {
-            return ['error' => $e->getMessage()];
-        }
-    }
-
-    public function test()
-    {
-        $handlerStack = Emulator::createHandlerStack();
-        $client = new Client(['handler' => $handlerStack]);
-        $baseUrl = 'https://example.com';  // Базовый URL для API доставки
-
-        $deliveries = [
-            [
-                'sourceKladr' => 'kladr1',
-                'targetKladr' => 'kladr2',
-                'weight' => 1.5
-            ],
-            [
-                'sourceKladr' => 'kladr3',
-                'targetKladr' => 'kladr4',
-                'weight' => 2.0
-            ]
-        ];
-
-        $calculator = new self($baseUrl, $client);
-        $results = $calculator->calculateDeliveryCost($deliveries);
-
-        foreach ($results as $result) {
-            print_r($result);
+            return [
+                'error' => $e->getMessage()
+            ];
         }
     }
 }
